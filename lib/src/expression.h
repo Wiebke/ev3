@@ -233,6 +233,16 @@ public:
   // return the additive constant of the expression and remove it from the
   // expression itself
   double RemoveAdditiveConstant();
+
+  // EVALUATION ROUTINES
+  // Slow evaluators (for cases when just 1 evaluation is needed;
+  // for repeated evaluations, use FastEval outside the class)
+  // numeric evaluation: varvalues[i] contains the value of the
+  // variable with varindex i, for all i < vsize.
+  double Eval(double* varvalues, Int vsize) const;
+  // in the following version, the varmap is used to map
+  // var. indices in the expressions to indices of varvalues
+  double Eval(double* varvalues, std::map<int,int>& varmap, Int vsize) const;
 };
 
 std::ostream & operator<< (std::ostream & out, const BasicExpression & expr);

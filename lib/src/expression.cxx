@@ -1581,6 +1581,154 @@ double BasicExpression::RemoveAdditiveConstant()
   return ret;
 }
 
+/************** numerical expression evalution ************************/
+
+double BasicExpression::Eval(double* varvalues, Int vsize) const {
+  std::map<Int,Int> varmap;
+  for(Int i = 1; i <= vsize; i++) {
+    varmap[i] = i;
+  }
+  return Eval(varvalues, varmap, vsize);
+}
+
+double BasicExpression::Eval(double* varvalues, std::map<int,int>& varmap,
+			     Int vsize) const {
+  // evaluate expression
+  if (GetOpType() == CONST) {
+    return GetValue();
+  } else if (GetOpType() == VAR) {
+    if (GetVarIndex() > vsize) {
+      throw ErrNotPermitted(0, "BasicExpression", "Eval", "varindex > vsize",
+			    "varindex should be <= vsize", HELPURL);
+    } else if (GetVarIndex() <= 0) {
+      throw ErrNotPermitted(1, "BasicExpression", "Eval", "varindex <= 0",
+                            "varindex should be > 0", HELPURL);
+    }
+    double ret = GetCoeff() * pow(varvalues[varmap[varindex_] - 1],
+				  GetExponent());
+    return ret;
+  } else {
+    Int i;
+    double ret = 0;
+    double tmp = 0;
+    int op = GetOpType();
+    if (GetSize() == 0) {
+      throw ErrNotPermitted(5, "BasicExpression", "Eval", "GetSize()==0",
+			    "non-leaf expressions without subnodes",
+			    HELPURL);
+    }
+    switch(op) {
+    case SUM:
+      for(i = 0; i < GetSize(); i++) {
+	       ret += GetNode(i)->Eval(varvalues, varmap, vsize);
+      }
+      ret *= GetCoeff();
+      break;
+    case DIFFERENCE:
+      for(i = 0; i < GetSize(); i++) {
+	       ret -= GetNode(i)->Eval(varvalues, varmap, vsize);
+      }
+      ret *= GetCoeff();
+      break;
+    case PRODUCT:
+      ret = 1;
+      for(i = 0; i < GetSize(); i++) {
+	       ret *= GetNode(i)->Eval(varvalues, varmap, vsize);
+      }
+      ret *= GetCoeff();
+      break;
+    case FRACTION:
+      if (GetSize() != 2) {
+	       throw ErrNotPermitted(1, "BasicExpression", "Eval", "GetSize()!=2",
+	        "fractions should have just 2 operands",
+  	      HELPURL);
+      }
+      for(i = 0; i < GetSize(); i++) {
+	       tmp = GetNode(i)->Eval(varvalues, varmap, vsize);
+	        if (i > 0 && tmp == 0) {
+	           throw ErrNotPermitted(2, "BasicExpression", "Eval", "divisor==0",
+	            "division by zero not allowed",
+              HELPURL);
+	        }
+        	if (i == 0)
+        	  ret = tmp;
+        	else
+        	  ret /= tmp;
+      }
+      ret *= GetCoeff();
+      break;
+    case POWER:
+      if (GetSize() != 2) {
+	       throw ErrNotPermitted(3, "BasicExpression", "Eval", "GetSize()!=2",
+	        "powers should have just 2 operands",
+	        HELPURL);
+      }
+      ret = GetNode(0)->Eval(varvalues, varmap, vsize);
+      for(i = 1; i < GetSize(); i++) {
+	       ret = pow(ret, GetNode(i)->Eval(varvalues, varmap, vsize));
+      }
+      ret *= GetCoeff();
+      break;
+    // for all unary functions - should check that GetSize() == 1
+    case PLUS:
+      ret = GetCoeff() * GetNode(0)->Eval(varvalues, varmap, vsize);
+      break;
+    case MINUS:
+      ret = -GetCoeff() * GetNode(0)->Eval(varvalues, varmap, vsize);
+      break;
+    case LOG:
+      tmp = GetNode(0)->Eval(varvalues, varmap, vsize);
+      if (tmp < 0) {
+	       throw ErrNotPermitted(6, "BasicExpression", "Eval", "log arg < 0",
+	        "log of negative not allowed", HELPURL);
+      } else if (tmp == 0) {
+	       throw ErrNotPermitted(7, "BasicExpression", "Eval", "log arg == 0",
+	        "log of zero not allowed", HELPURL);
+	       tmp = Ev3NearZero();
+      }
+      ret = GetCoeff() * std::log(tmp);
+      break;
+    case EXP:
+      ret = GetCoeff() * std::exp(GetNode(0)->Eval(varvalues, varmap, vsize));
+      break;
+    case SIN:
+      ret = GetCoeff() * std::sin(GetNode(0)->Eval(varvalues, varmap, vsize));
+      break;
+    case COS:
+      ret = GetCoeff() * std::cos(GetNode(0)->Eval(varvalues, varmap, vsize));
+      break;
+    case TAN:
+      ret = GetCoeff() * std::tan(GetNode(0)->Eval(varvalues, varmap, vsize));
+      // should check that cos() is nonzero
+      break;
+    case SINH:
+      ret = GetCoeff() * std::sinh(GetNode(0)->Eval(varvalues, varmap, vsize));
+      break;
+    case COSH:
+      ret = GetCoeff() * std::cosh(GetNode(0)->Eval(varvalues, varmap, vsize));
+      break;
+    case TANH:
+      ret = GetCoeff() * std::tanh(GetNode(0)->Eval(varvalues, varmap, vsize));
+      // should check that cosh is nonzero
+      break;
+    case COTH:
+      ret = GetCoeff() / std::tanh(GetNode(0)->Eval(varvalues, varmap, vsize));
+      // should check that tanh is nonzero
+      break;
+    case SQRT:
+      tmp = GetNode(0)->Eval(varvalues, varmap, vsize);
+      if (tmp < 0) {
+	       throw ErrNotPermitted(9, "BasicExpression", "Eval", "sqrt arg < 0",
+	        "sqrt of negative not allowed", HELPURL);
+	    }
+      ret = GetCoeff() * sqrt(tmp);
+      break;
+    }
+    return ret;
+  }
+}
+
+
 /************** expression creation (no change to args) ***************/
 
 // BIG FAT WARNING: when you change these operators, also please
