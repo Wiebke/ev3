@@ -23,11 +23,11 @@
 namespace Ev3
 {
 
-class BasicExpression;
+class EV3_API BasicExpression;
 
 typedef Pointer<BasicExpression> Expression;
 
-class BasicExpression : public Operand, public Tree<BasicExpression>
+class EV3_API BasicExpression : public Operand, public Tree<BasicExpression>
 {
 
 private:

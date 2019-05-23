@@ -23,7 +23,7 @@ inline void STDACTION()
   //std::cerr << interface_ << "::" << scope_ << ": in [" << operation_ << "]: " << description_ << ", code = " << code_ << ", see " << moreinfo_ << std::endl
 }
 
-class ErrBase
+class EV3_API ErrBase
 {
 public:
   unsigned long code_;
@@ -59,7 +59,7 @@ public:
   }
 };
 
-class ErrUnknown : public ErrBase
+class EV3_API ErrUnknown : public ErrBase
 {
 public:
   ErrUnknown(const unsigned long mycode,
@@ -89,7 +89,7 @@ public:
   }
 };
 
-class ErrDivideByZero : public ErrBase
+class EV3_API ErrDivideByZero : public ErrBase
 {
 public:
   std::string dividend;

@@ -40,7 +40,7 @@ enum Token_value
 #define PEV3UNKNOWNVAR -2
 
 // the Eval class
-class ExpressionParser
+class EV3_API ExpressionParser
 {
 
 private:

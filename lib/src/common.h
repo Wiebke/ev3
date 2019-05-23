@@ -15,6 +15,27 @@
 #define LARGE 1E10
 #define NOTVARNAME "_var_not_found_"
 
+#pragma once
+
+#ifdef EV3_DLL // DYNAMIC (must be set when we are building a dynamic library)
+// If we are building DLL files we must declare dllexport/dllimport
+#   ifdef ev3_EXPORTS
+#       ifdef _WIN32
+#           define EV3_API __declspec(dllexport)
+#       else  // UNIX (GCC)
+#           define EV3_API __attribute__((visibility("default")))
+#       endif
+#   else
+#       ifdef _WIN32
+#           define EV3_API __declspec(dllimport)
+#       else
+#           define EV3_API
+#       endif
+#   endif
+#else  // STATIC
+#   define EV3_API
+#endif
+
 namespace Ev3
 {
 typedef int Int;

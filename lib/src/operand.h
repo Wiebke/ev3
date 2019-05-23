@@ -18,7 +18,7 @@
 namespace Ev3
 {
 // algebraic expression operand
-class Operand
+class EV3_API Operand
 {
 
 private:
